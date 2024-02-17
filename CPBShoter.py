@@ -1,6 +1,5 @@
 import pygame
 import random
-import math
 
 # Inicjalizacja Pygame
 pygame.init()
@@ -20,10 +19,11 @@ enemy_shoot_timer_count = FPS * 2  # Licznik czasu strzału przeciwnika
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+    
+font = pygame.font.Font(None, 36)
 
 # Funkcja do wyboru postaci
 def choose_character():
-    font = pygame.font.Font(None, 36)
     text1 = font.render("Choose your character:", True, WHITE)
     text2 = font.render("1. Czarkowski", True, WHITE)
     text3 = font.render("2. PanPole", True, WHITE)
@@ -62,6 +62,7 @@ def generate_enemies():
 # Funkcja do sprawdzania kolizji pocisków z przeciwnikami
 def check_collision():
     global wave_counter
+    global score
     for bullet in bullets[:]:  # Iterujemy po kopii listy bullets, aby móc bezpiecznie usuwać elementy
         for enemy in enemies[:]:  # Iterujemy po kopii listy enemies, aby móc bezpiecznie usuwać elementy
             if (bullet[0] > enemy[0] and bullet[0] < enemy[0] + enemy_width) and (
@@ -72,6 +73,7 @@ def check_collision():
                     enemies.remove(enemy)
                 if wave_counter < max_wave:
                     generate_enemies()  # Generowanie nowych przeciwników po trafieniu
+                score += 1
 # Wybór postaci
 chosen_character = choose_character()
 
@@ -104,6 +106,9 @@ bullet_img.fill(RED)
 bullets = []
 bullet_speed = 2
 
+enemy_bullets = []
+enemy_fire_rate = 10
+
 # Licznik fali
 wave_counter = 0
 max_wave = 5  # Maksymalna liczba fal
@@ -120,8 +125,7 @@ enemy_shoot_timer_count = FPS * 2  # Licznik czasu strzału przeciwnika
 # Funkcja do strzelania przez przeciwników
 def enemy_fire():
     for enemy in enemies:
-        if random.random() < enemy_fire_rate:
-            enemy_bullets.append([enemy[0] + enemy_width // 2 - 2, enemy[1] + enemy_height])
+        enemy_bullets.append([enemy[0] + enemy_width // 2 - 2, enemy[1] + enemy_height])
 
 # Główna pętla gry
 running = True
@@ -153,9 +157,7 @@ while running:
     # Sprawdzanie czy przeciwnicy powinni strzelać do gracza
     if enemy_shoot_timer_count <= 0:
         enemy_shoot_timer_count = FPS * 2  # Zresetuj licznik czasu strzału
-        for enemy in enemies:
-            # Kod obsługujący strzały przeciwników
-            pass
+        enemy_fire()
     else:
         enemy_shoot_timer_count -= 1  # Dekrementuj licznik czasu strzału
 
@@ -174,6 +176,9 @@ while running:
     for bullet in bullets:
         bullet[1] -= bullet_speed
 
+    for bullet in enemy_bullets:
+        bullet[1] += bullet_speed
+
     # Rysowanie
     screen.fill(BLACK)
     screen.blit(player_img, (player_x, player_y))
@@ -181,6 +186,11 @@ while running:
         screen.blit(enemy_img, (enemy[0], enemy[1]))
     for bullet in bullets:
         pygame.draw.rect(screen, RED, pygame.Rect(bullet[0], bullet[1], 4, 10))
+    for bullet in enemy_bullets:
+        pygame.draw.rect(screen, RED, pygame.Rect(bullet[0], bullet[1], 4, 10))
+
+    text_score = font.render(str(score), True, WHITE)
+    screen.blit(text_score, (screen_width // 2 - text_score.get_width() // 2, 100))
 
     # Aktualizacja okna
     pygame.display.flip()
