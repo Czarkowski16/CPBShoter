@@ -22,6 +22,11 @@ RED = (255, 0, 0)
     
 font = pygame.font.Font(None, 36)
 
+player_width = 100
+player_height = 100
+player_x = screen_width // 2 - player_width // 2
+player_y = screen_height - player_height - 10
+
 # Funkcja do wyboru postaci
 def choose_character():
     text1 = font.render("Choose your character:", True, WHITE)
@@ -66,7 +71,7 @@ def check_collision():
     for bullet in bullets[:]:  # Iterujemy po kopii listy bullets, aby móc bezpiecznie usuwać elementy
         for enemy in enemies[:]:  # Iterujemy po kopii listy enemies, aby móc bezpiecznie usuwać elementy
             if (bullet[0] > enemy[0] and bullet[0] < enemy[0] + enemy_width) and (
-                    bullet[1] > enemy[1] and bullet[1] < enemy[1] + enemy_height):
+            bullet[1] > enemy[1] and bullet[1] < enemy[1] + enemy_height):
                 if bullet in bullets:
                     bullets.remove(bullet)
                 if enemy in enemies:
@@ -74,6 +79,14 @@ def check_collision():
                 if wave_counter < max_wave:
                     generate_enemies()  # Generowanie nowych przeciwników po trafieniu
                 score += 1
+
+def check_game_over():
+    global score
+    for bullet in enemy_bullets[:]:
+        if (bullet[0] > player_x and bullet[0] < player_x + player_width) and (
+        bullet[1] > player_y and bullet[1] < player_y + player_height):
+            score = 0
+
 # Wybór postaci
 chosen_character = choose_character()
 
@@ -153,6 +166,8 @@ while running:
 
     # Sprawdzenie kolizji pocisków z przeciwnikami
     check_collision()
+
+    check_game_over()
 
     # Sprawdzanie czy przeciwnicy powinni strzelać do gracza
     if enemy_shoot_timer_count <= 0:
